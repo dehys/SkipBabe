@@ -15,8 +15,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import static com.dehys.skipbabe.Options.PERMISSION_ERROR;
-import static com.dehys.skipbabe.Options.PREFIX;
+import static com.dehys.skipbabe.Options.*;
 
 public class CommandHandler extends ListenerAdapter implements Handler {
 
@@ -68,14 +67,12 @@ public class CommandHandler extends ListenerAdapter implements Handler {
     }
 
     public CommandHandler addCommands(Command ... commandArray){
-        List<CommandData> slashCommandData = Arrays.stream(commandArray).filter(Command::backingSlash).map(Command::commandData).flatMap(Collection::stream).toList();
-
-        for (CommandData dt : slashCommandData){
-            System.out.println("CommandData: " + dt.getName() + " added successfully");
+        List<CommandData> slashCommandData;
+        if (ADD_ALIASES_AS_SLASH_COMMAND) {
+            slashCommandData = Arrays.stream(commandArray).filter(Command::backingSlash).map(Command::commandData).flatMap(Collection::stream).toList();
+        } else {
+            slashCommandData = Arrays.stream(commandArray).filter(Command::backingSlash).map(Command::simpleCommandData).flatMap(Collection::stream).toList();
         }
-
-        System.out.println("Number of guilds detected: " + SkipBabe.jda.getGuilds().size());
-
         SkipBabe.jda.getGuilds().forEach(guild -> guild.updateCommands().addCommands(slashCommandData).complete());
         commands.addAll(List.of(commandArray));
         return this;

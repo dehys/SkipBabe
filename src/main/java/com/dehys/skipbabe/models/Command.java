@@ -19,6 +19,12 @@ public interface Command {
         return data;
     }
 
+    default List<CommandData> simpleCommandData(){
+        List<CommandData> data = new ArrayList<>();
+        data.add(new CommandData(this.name(), this.description()));
+        return data;
+    }
+
     default boolean backingSlash(){ return true; }
 
     @NotNull String name();
