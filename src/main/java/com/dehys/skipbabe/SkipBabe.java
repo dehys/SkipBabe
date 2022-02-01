@@ -13,7 +13,7 @@ public class SkipBabe {
     public static CommandHandler commandHandler;
 
     public static void main(String[] args) throws LoginException, InterruptedException {
-        jda = JDABuilder.create("" , getIntents()).build();
+        jda = JDABuilder.create(System.getenv("SKIPBABE_TOKEN") , getIntents()).build();
         jda.awaitReady();
 
         commandHandler = ((CommandHandler) new CommandHandler().subscribe()).addCommands();
