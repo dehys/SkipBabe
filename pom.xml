@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.dehys</groupId>
-    <artifactId>SkipBabe</artifactId>
+    <artifactId>Ryder</artifactId>
     <version>1.0-beta</version>
 
     <properties>
@@ -76,11 +76,6 @@
             <artifactId>lombok</artifactId>
             <version>1.18.22</version>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.kohsuke</groupId>
-            <artifactId>github-api</artifactId>
-            <version>1.301</version>
         </dependency>
     </dependencies>
 
