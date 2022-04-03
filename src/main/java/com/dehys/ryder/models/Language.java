@@ -1,4 +1,4 @@
-package com.dehys.skipbabe.models;
+package com.dehys.ryder.models;
 
 
 import lombok.Getter;

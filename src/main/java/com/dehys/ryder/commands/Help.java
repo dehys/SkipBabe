@@ -1,6 +1,6 @@
-package com.dehys.skipbabe.commands;
+package com.dehys.ryder.commands;
 
-import com.dehys.skipbabe.models.Command;
+import com.dehys.ryder.models.Command;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +29,7 @@ public class Help implements Command {
     @Override
     public void execute(MessageReceivedEvent event) {
 
-
+        event.getChannel().sendMessage("this is help").queue();
 
     }
 

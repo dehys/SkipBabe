@@ -1,7 +1,7 @@
-package com.dehys.skipbabe;
+package com.dehys.ryder;
 
-import com.dehys.skipbabe.models.Command;
-import com.dehys.skipbabe.models.Handler;
+import com.dehys.ryder.models.Command;
+import com.dehys.ryder.models.Handler;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
@@ -15,7 +15,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import static com.dehys.skipbabe.Options.*;
+import static com.dehys.ryder.Options.*;
 
 public class CommandHandler extends ListenerAdapter implements Handler {
 
@@ -24,7 +24,7 @@ public class CommandHandler extends ListenerAdapter implements Handler {
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
         if (!event.getMessage().getContentRaw().startsWith(PREFIX)) return; //checks if the message received does not start with the prefix
-        if (event.getAuthor().equals(SkipBabe.jda.getSelfUser())) return; //checks if the author of the message received is the bot itself
+        if (event.getAuthor().equals(Ryder.jda.getSelfUser())) return; //checks if the author of the message received is the bot itself
 
         Member member = event.getMember();
         String label = event.getMessage().getContentRaw().split(" ")[0].replaceFirst(PREFIX, "");
@@ -73,7 +73,7 @@ public class CommandHandler extends ListenerAdapter implements Handler {
         } else {
             slashCommandData = Arrays.stream(commandArray).filter(Command::backingSlash).map(Command::simpleCommandData).flatMap(Collection::stream).toList();
         }
-        SkipBabe.jda.getGuilds().forEach(guild -> guild.updateCommands().addCommands(slashCommandData).complete());
+        Ryder.jda.getGuilds().forEach(guild -> guild.updateCommands().addCommands(slashCommandData).complete());
         commands.addAll(List.of(commandArray));
         return this;
     }
