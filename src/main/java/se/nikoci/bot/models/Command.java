@@ -1,11 +1,7 @@
 package se.nikoci.bot.models;
 
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import org.jetbrains.annotations.NotNull;
-import se.nikoci.bot.Settings;
 
 import java.util.*;
 
@@ -19,31 +15,6 @@ public interface Command {
         Set<Permission> permissions = new HashSet<>();
         permissions.add(Permission.MESSAGE_SEND);
         return permissions;
-    }
-
-    default void execute(CommandInformation ci){
-        switch (ci.getType()) {
-            case DISCORD_TEXT, DISCORD_PRIVATE -> execute((MessageReceivedEvent) ci.getEvent());
-            case DISCORD_SLASH -> execute((SlashCommandEvent) ci.getEvent());
-        }
-    }
-
-    default void execute(MessageReceivedEvent event){
-
-    }
-    default void execute(SlashCommandEvent event) {
-
-    };
-
-    default List<CommandData> commandData(Settings settings){
-        List<CommandData> data = new ArrayList<>();
-        data.add(new CommandData(this.name(), this.description()));
-        if (settings.isAddingAliases()) {
-            for (String alias : aliases()){
-                data.add(new CommandData(alias, this.description()));
-            }
-        }
-        return data;
     }
 
     class CommandInformation {

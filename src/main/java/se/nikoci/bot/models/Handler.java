@@ -1,18 +1,18 @@
 package se.nikoci.bot.models;
 
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import se.nikoci.bot.Dennis;
+import se.nikoci.bot.Ryder;
 
 public class Handler extends ListenerAdapter {
 
-    public Dennis instance;
+    public Ryder instance;
 
-    public Dennis getInstance(){
+    public Ryder getInstance(){
         return instance;
     }
 
-    public Handler setInstance(Dennis dennis){
-        this.instance = dennis;
+    public Handler setInstance(Ryder ryder){
+        this.instance = ryder;
         return this;
     }
 

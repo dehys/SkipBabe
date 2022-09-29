@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>se.nikoci</groupId>
-    <artifactId>DennisBot</artifactId>
+    <artifactId>Ryder</artifactId>
     <version>1.0.0</version>
 
     <properties>

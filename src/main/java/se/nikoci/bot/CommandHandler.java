@@ -7,11 +7,12 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import se.nikoci.bot.models.Command;
 import se.nikoci.bot.models.Handler;
+import se.nikoci.bot.models.NormalCommand;
+import se.nikoci.bot.models.SlashCommand;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public class CommandHandler extends Handler {
 
@@ -24,19 +25,12 @@ public class CommandHandler extends Handler {
 
         Member member = event.getMember();
         String label = event.getMessage().getContentRaw().split(" ")[0].replaceFirst(this.instance.getSettings().getPrefix(), "");
-        Command command = getCommand(label);
+        NormalCommand command = (NormalCommand) getCommand(label);
 
         if (!event.isFromType(ChannelType.TEXT) || member == null || command == null) return;
 
         if (member.hasPermission(command.permissions())){
-            Command.CommandType commandType;
-            switch (event.getChannelType()) {
-                case TEXT -> { commandType = Command.CommandType.DISCORD_TEXT; }
-                case PRIVATE -> { commandType = Command.CommandType.DISCORD_PRIVATE; }
-                default -> { commandType = Command.CommandType.UNINDENTIFIED; }
-            }
-
-            command.execute(new Command.CommandInformation(commandType.setEvent(event))); //Execute the command
+            command.execute(event); //Execute the command
         } else {
             event.getChannel().sendMessage(this.instance.getSettings().getPermission_error()).queue();
         }
@@ -46,31 +40,53 @@ public class CommandHandler extends Handler {
     @Override
     public void onSlashCommand(SlashCommandEvent event) {
         Member member = event.getMember();
-        Command command = getCommand(event.getName());
+        SlashCommand command = (SlashCommand) getCommand(event.getName());
 
         if (!event.isFromGuild() || member == null || command == null) return;
 
         if (member.hasPermission(command.permissions())) {
-            command.execute(new Command.CommandInformation(Command.CommandType.DISCORD_SLASH.setEvent(event)));
+            command.execute(event);
         } else {
             event.getChannel().sendMessage(this.instance.getSettings().getPermission_error()).queue();
         }
     }
 
-    public void addCommands(Command ... commandArray) {
-        List<CommandData> slashCommandData;
-        slashCommandData = Arrays.stream(commandArray).map(cmd -> cmd.commandData(this.getInstance().getSettings())).flatMap(Collection::stream).toList();
+    public final void addCommands(Command... commandArray) {
+        List<CommandData> slashCommandData = new ArrayList<>();
 
-        //Add all slashcommands for all guilds the bot has access to
-        this.getInstance().getJda().getGuilds().forEach(guild -> guild.updateCommands().addCommands(slashCommandData).complete());
+        for (Command command : commandArray){
+            if (command instanceof SlashCommand slashCommand){
+                slashCommandData.addAll(slashCommand.CommandData(this.getInstance().getSettings()));
+            }
+        }
+
+        this.getInstance().getJda()
+                .updateCommands()
+                .addCommands(slashCommandData)
+                .complete();
         commands.addAll(List.of(commandArray));
     }
 
-    public void addCommand(Command command) { commands.add(command); }
+    public final void removeCommands(Command... commandArray) {
+        this.getInstance().getJda().updateCommands().queue();
+        for (Command command : commandArray){
+            commands.remove(command);
+        }
+        commands.forEach(this::addCommand);
+    }
 
-    public void removeCommand(Command command) { commands.remove(command); }
+    public void addCommand(Command command) {
+        this.addCommands(command);
+    }
 
-    public void removeCommand(String name) { commands.stream().filter(cmd -> cmd.name().equalsIgnoreCase(name)).forEach(commands::remove); }
+    public void removeCommand(Command command) {
+        this.removeCommands(command);
+    }
+
+    public void removeCommand(String name) {
+        Command command = getCommand(name);
+        removeCommand(command);
+    }
 
     public Command getCommand(String name) {
         return commands.stream().filter(
@@ -78,5 +94,7 @@ public class CommandHandler extends Handler {
         ).findFirst().orElse(null);
     }
 
-    public List<Command> getCommands(){ return commands; }
+    public List<Command> getCommands(){
+        return commands;
+    }
 }

@@ -6,25 +6,24 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import se.nikoci.bot.models.Command;
 
 import javax.security.auth.login.LoginException;
+import java.util.List;
 import java.util.Set;
 
-public class Dennis {
+public class Ryder {
 
     private final JDA jda;
     private CommandHandler commandHandler;
-    private Set<Class<? extends Command>> commands;
-
     private final Set<GatewayIntent> intents;
     private final Settings settings;
 
-    public Dennis(String token, Set<GatewayIntent> intents, Settings settings) throws LoginException, InterruptedException {
+    public Ryder(String token, Set<GatewayIntent> intents, Settings settings) throws LoginException, InterruptedException {
         this.intents = intents;
         this.settings = settings;
         jda = JDABuilder.create(token, intents).build();
         jda.awaitReady();
     }
 
-    public Dennis(String token, Set<GatewayIntent> intents, CommandHandler commandHandler, Settings settings) throws LoginException, InterruptedException {
+    public Ryder(String token, Set<GatewayIntent> intents, CommandHandler commandHandler, Settings settings) throws LoginException, InterruptedException {
         this.intents = intents;
         this.settings = settings;
         jda = JDABuilder.create(token, intents).build();
@@ -33,7 +32,7 @@ public class Dennis {
     }
 
     public JDA getJda(){ return this.jda; }
-    public Set<Class<? extends Command>> getCommands(){ return this.commands; }
+    public List<Command> getCommands(){ return getCommandHandler().getCommands(); }
     public Set<GatewayIntent> getIntents(){ return this.intents; }
 
     public CommandHandler getCommandHandler() { return this.commandHandler; }
