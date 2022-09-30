@@ -12,7 +12,6 @@ import se.nikoci.bot.models.SlashCommand;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class CommandHandler extends Handler {
 
