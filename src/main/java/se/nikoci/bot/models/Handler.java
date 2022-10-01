@@ -7,10 +7,6 @@ public class Handler extends ListenerAdapter {
 
     public Ryder instance;
 
-    public Ryder getInstance(){
-        return instance;
-    }
-
     public Handler setInstance(Ryder ryder){
         this.instance = ryder;
         return this;

@@ -3,10 +3,10 @@ package se.nikoci.bot;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.requests.GatewayIntent;
-import se.nikoci.bot.models.Command;
+import se.nikoci.bot.models.Request;
 
 import javax.security.auth.login.LoginException;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class Ryder {
@@ -32,7 +32,7 @@ public class Ryder {
     }
 
     public JDA getJda(){ return this.jda; }
-    public List<Command> getCommands(){ return getCommandHandler().getCommands(); }
+    public Map<String, Request> getRequestMap(){ return getCommandHandler().getRequestMap(); }
     public Set<GatewayIntent> getIntents(){ return this.intents; }
 
     public CommandHandler getCommandHandler() { return this.commandHandler; }

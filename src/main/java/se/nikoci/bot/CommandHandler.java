@@ -5,30 +5,31 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
-import se.nikoci.bot.models.Command;
+import se.nikoci.bot.models.Request;
 import se.nikoci.bot.models.Handler;
-import se.nikoci.bot.models.NormalCommand;
+import se.nikoci.bot.models.Command;
 import se.nikoci.bot.models.SlashCommand;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class CommandHandler extends Handler {
 
-    private final List<Command> commands = new ArrayList<>();
+    //No command aliases stored here, check Request#aliases
+    //Map<name, Request object (Command)>
+    private final Map<String, Request> requestMap = new HashMap<>();
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
         if (!event.getMessage().getContentRaw().startsWith(this.instance.getSettings().getPrefix())) return;
-        if (event.getAuthor().equals(this.getInstance().getJda().getSelfUser())) return;
+        if (event.getAuthor().equals(this.instance.getJda().getSelfUser())) return;
 
         Member member = event.getMember();
         String label = event.getMessage().getContentRaw().split(" ")[0].replaceFirst(this.instance.getSettings().getPrefix(), "");
-        NormalCommand command = (NormalCommand) getCommand(label);
+        Command command = (Command) getCommand(label);
 
         if (!event.isFromType(ChannelType.TEXT) || member == null || command == null) return;
 
-        if (member.hasPermission(command.permissions())){
+        if (member.hasPermission(command.getPermissions())){
             command.execute(event); //Execute the command
         } else {
             event.getChannel().sendMessage(this.instance.getSettings().getPermission_error()).queue();
@@ -43,57 +44,52 @@ public class CommandHandler extends Handler {
 
         if (!event.isFromGuild() || member == null || command == null) return;
 
-        if (member.hasPermission(command.permissions())) {
+        if (member.hasPermission(command.getPermissions())) {
             command.execute(event);
         } else {
             event.getChannel().sendMessage(this.instance.getSettings().getPermission_error()).queue();
         }
     }
 
-    public final void addCommands(Command... commandArray) {
-        List<CommandData> slashCommandData = new ArrayList<>();
+    public void addCommand(Request request){
+        List<CommandData> slashCommandData = (request instanceof SlashCommand slashCommand) ?
+                List.of(slashCommand.getCommandData()) : null;
 
-        for (Command command : commandArray){
-            if (command instanceof SlashCommand slashCommand){
-                slashCommandData.addAll(slashCommand.CommandData(this.getInstance().getSettings()));
-            }
-        }
-
-        this.getInstance().getJda()
+        if (slashCommandData != null) this.instance.getJda()
                 .updateCommands()
                 .addCommands(slashCommandData)
                 .complete();
-        commands.addAll(List.of(commandArray));
+
+        requestMap.put(request.getName(), request);
     }
 
-    public final void removeCommands(Command... commandArray) {
-        this.getInstance().getJda().updateCommands().queue();
-        for (Command command : commandArray){
-            commands.remove(command);
+    public void removeCommand(String name){
+        requestMap.keySet().forEach(cmd -> {
+            if (cmd.equalsIgnoreCase(name)) requestMap.remove(cmd);
+        });
+    }
+
+    public Request getCommand(String name){
+        for (var entrySet : requestMap.entrySet()){
+            if (entrySet.getValue() instanceof Command command){
+                for (String alias : command.getAliases()) if (
+                        name.equalsIgnoreCase(alias) || name.equalsIgnoreCase(command.getName())
+                ) return entrySet.getValue();
+            } else if (name.equalsIgnoreCase(entrySet.getKey())) return entrySet.getValue();
         }
-        commands.forEach(this::addCommand);
+        return null;
     }
 
-    public void addCommand(Command command) {
-        this.addCommands(command);
+    public Map<String, Request> getRequestMap(){
+        return this.requestMap;
     }
 
-    public void removeCommand(Command command) {
-        this.removeCommands(command);
+    public void addCommands(Request... requests){
+        for (var req : requests) addCommand(req);
     }
 
-    public void removeCommand(String name) {
-        Command command = getCommand(name);
-        removeCommand(command);
+    public void removeCommands(String... names){
+        for (var name : names) removeCommand(name);
     }
 
-    public Command getCommand(String name) {
-        return commands.stream().filter(
-                cmd -> cmd.name().equalsIgnoreCase(name) || cmd.aliases().contains(name.toLowerCase())
-        ).findFirst().orElse(null);
-    }
-
-    public List<Command> getCommands(){
-        return commands;
-    }
 }

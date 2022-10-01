@@ -1,6 +1,7 @@
 package se.nikoci.bot;
 
 import net.dv8tion.jda.api.requests.GatewayIntent;
+import se.nikoci.bot.commands.AddRemoveCommand;
 import se.nikoci.bot.commands.InfoCommand;
 
 import javax.security.auth.login.LoginException;
@@ -11,7 +12,7 @@ public class Main {
     public static Ryder ryder;
 
     public static void main(String[] args) throws LoginException, InterruptedException {
-        ryder = new Ryder("MTAyNDc1NjQxOTM5Mzc1NzIwNA.GYj7_q.AwddZ7Ja8zWPZ09zZ_jEjpNRVlQzDGrUabfYXc", Set.of(
+        ryder = new Ryder("", Set.of(
                 GatewayIntent.GUILD_MEMBERS,
                 GatewayIntent.GUILD_MESSAGES,
                 GatewayIntent.GUILD_WEBHOOKS,
@@ -22,6 +23,7 @@ public class Main {
         ), new CommandHandler(), new Settings());
 
         ryder.getCommandHandler().addCommands(
+                new AddRemoveCommand(),
                 new InfoCommand()
         );
     }
