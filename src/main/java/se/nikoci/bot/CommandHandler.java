@@ -11,12 +11,18 @@ import se.nikoci.bot.models.Command;
 import se.nikoci.bot.models.SlashCommand;
 
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class CommandHandler extends Handler {
+
+    static Logger log = Logger.getLogger(CommandHandler.class.getName());
 
     //No command aliases stored here, check Request#aliases
     //Map<name, Request object (Command)>
     private final Map<String, Request> requestMap = new HashMap<>();
+
+    private final List<CommandData> slashCommandData = new ArrayList<>();
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
@@ -52,20 +58,34 @@ public class CommandHandler extends Handler {
     }
 
     public void addCommand(Request request){
-        List<CommandData> slashCommandData = (request instanceof SlashCommand slashCommand) ?
-                List.of(slashCommand.getCommandData()) : null;
+        CommandData commandData = (request instanceof SlashCommand sc) ?
+                ((sc.getCommandData() != null) ? sc.getCommandData() : null)
+                : null;
 
-        if (slashCommandData != null) this.instance.getJda()
-                .updateCommands()
-                .addCommands(slashCommandData)
-                .complete();
+        if (commandData != null) {
+            this.slashCommandData.add(commandData);
+            log.info("Added '" + request.getName() + "' to slash command data to be updated");
+        } else log.warning("No command-data for request '" + request.getName() + "'");
 
         requestMap.put(request.getName(), request);
+    }
+
+    public void updateCommandData(){
+        this.instance.getJda()
+                .updateCommands()
+                .addCommands(this.slashCommandData)
+                .complete();
+
+        log.info("Updated command data for " + slashCommandData.toArray().length + " entries");
     }
 
     public void removeCommand(String name){
         requestMap.keySet().forEach(cmd -> {
             if (cmd.equalsIgnoreCase(name)) requestMap.remove(cmd);
+        });
+
+        slashCommandData.forEach(commandData -> {
+            if (commandData.getName().equalsIgnoreCase(name)) slashCommandData.remove(commandData);
         });
     }
 

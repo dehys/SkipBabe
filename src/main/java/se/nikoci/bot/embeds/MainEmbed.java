@@ -5,9 +5,9 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 
 import java.awt.*;
 
-public class InfoEmbed {
+public class MainEmbed {
 
-    public static MessageEmbed infoEmbed1(){
+    public static MessageEmbed InfoEmbed(){
         return new EmbedBuilder()
                 .setTitle("DennisBot by nikoci", "https://github.com/nikoci/Ryder")
                 .setColor(Color.PINK)
@@ -15,6 +15,10 @@ public class InfoEmbed {
                 .setDescription("This is some information about the bot.")
                 .addField("Field", "some more field", true)
                 .build();
+    }
+
+    public static MessageEmbed HelpEmbed(){
+        return null;
     }
 
 }
