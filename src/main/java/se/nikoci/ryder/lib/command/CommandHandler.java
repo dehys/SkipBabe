@@ -1,17 +1,13 @@
-package se.nikoci.bot;
+package se.nikoci.ryder.lib.command;
 
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
-import se.nikoci.bot.models.Request;
-import se.nikoci.bot.models.Handler;
-import se.nikoci.bot.models.Command;
-import se.nikoci.bot.models.SlashCommand;
+import se.nikoci.ryder.lib.models.Handler;
 
 import java.util.*;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class CommandHandler extends Handler {
@@ -19,7 +15,7 @@ public class CommandHandler extends Handler {
     static Logger log = Logger.getLogger(CommandHandler.class.getName());
 
     //No command aliases stored here, check Request#aliases
-    //Map<name, Request object (Command)>
+    //Map<name, Request object (CommandOld)>
     private final Map<String, Request> requestMap = new HashMap<>();
 
     private final List<CommandData> slashCommandData = new ArrayList<>();
@@ -31,12 +27,12 @@ public class CommandHandler extends Handler {
 
         Member member = event.getMember();
         String label = event.getMessage().getContentRaw().split(" ")[0].replaceFirst(this.instance.getSettings().getPrefix(), "");
-        Command command = (Command) getCommand(label);
+        CommandOld commandOld = (CommandOld) getCommand(label);
 
-        if (!event.isFromType(ChannelType.TEXT) || member == null || command == null) return;
+        if (!event.isFromType(ChannelType.TEXT) || member == null || commandOld == null) return;
 
-        if (member.hasPermission(command.getPermissions())){
-            command.execute(event); //Execute the command
+        if (member.hasPermission(commandOld.getPermissions())){
+            commandOld.execute(event); //Execute the commandOld
         } else {
             event.getChannel().sendMessage(this.instance.getSettings().getPermission_error()).queue();
         }
@@ -91,9 +87,9 @@ public class CommandHandler extends Handler {
 
     public Request getCommand(String name){
         for (var entrySet : requestMap.entrySet()){
-            if (entrySet.getValue() instanceof Command command){
-                for (String alias : command.getAliases()) if (
-                        name.equalsIgnoreCase(alias) || name.equalsIgnoreCase(command.getName())
+            if (entrySet.getValue() instanceof CommandOld commandOld){
+                for (String alias : commandOld.getAliases()) if (
+                        name.equalsIgnoreCase(alias) || name.equalsIgnoreCase(commandOld.getName())
                 ) return entrySet.getValue();
             } else if (name.equalsIgnoreCase(entrySet.getKey())) return entrySet.getValue();
         }

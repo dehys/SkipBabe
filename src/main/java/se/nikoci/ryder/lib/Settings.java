@@ -1,4 +1,4 @@
-package se.nikoci.bot;
+package se.nikoci.ryder.lib;
 
 public class Settings {
 

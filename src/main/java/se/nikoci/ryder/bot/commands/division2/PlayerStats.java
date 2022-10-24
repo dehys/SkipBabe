@@ -1,4 +1,4 @@
-package se.nikoci.bot.commands.division2;
+package se.nikoci.ryder.bot.commands.division2;
 
 public class PlayerStats {
 

@@ -1,20 +1,15 @@
-package se.nikoci.bot.commands.division2;
+package se.nikoci.ryder.bot.commands.division2;
 
-import com.google.gson.Gson;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
-import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
-import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
-import se.nikoci.bot.models.Command;
-import se.nikoci.bot.models.SlashCommand;
+import se.nikoci.ryder.lib.models.CommandOld;
+import se.nikoci.ryder.lib.models.SlashCommand;
 
-import java.io.IOException;
-
-public class DivisionCommand implements SlashCommand, Command {
+public class DivisionCommandOld implements SlashCommand, CommandOld {
 
     @Override
     public CommandData getCommandData() {

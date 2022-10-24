@@ -1,9 +1,9 @@
-package se.nikoci.bot;
+package se.nikoci.ryder.lib;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.requests.GatewayIntent;
-import se.nikoci.bot.models.Request;
+import se.nikoci.ryder.lib.command.CommandHandler;
 
 import javax.security.auth.login.LoginException;
 import java.util.Map;

@@ -1,8 +1,8 @@
-package se.nikoci.bot.embeds;
+package se.nikoci.ryder.bot.embeds;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import se.nikoci.bot.commands.division2.PlayerStats;
+import se.nikoci.ryder.bot.commands.division2.PlayerStats;
 
 import java.awt.*;
 

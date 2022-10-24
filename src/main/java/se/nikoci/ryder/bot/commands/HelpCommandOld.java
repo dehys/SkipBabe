@@ -1,20 +1,19 @@
-package se.nikoci.bot.commands;
+package se.nikoci.ryder.bot.commands;
 
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.jetbrains.annotations.NotNull;
-import se.nikoci.bot.Ryder;
-import se.nikoci.bot.models.Command;
-import se.nikoci.bot.models.SlashCommand;
+import se.nikoci.ryder.lib.Ryder;
+import se.nikoci.ryder.lib.models.CommandOld;
+import se.nikoci.ryder.lib.models.SlashCommand;
 
-public class HelpCommand implements SlashCommand, Command {
+public class HelpCommandOld implements SlashCommand, CommandOld {
 
     private final CommandData commandData;
 
-    public HelpCommand(Ryder instance){
+    public HelpCommandOld(Ryder instance){
         this.commandData = new CommandData(getName(), getDescription());
         for (String entry : instance.getCommandHandler().getRequestMap().keySet()){
             this.commandData.addSubcommands(new SubcommandData(entry.trim(), "Help for "+entry.trim()+" command"));
@@ -48,6 +47,6 @@ public class HelpCommand implements SlashCommand, Command {
 
     @Override
     public String[] getAliases() {
-        return Command.super.getAliases();
+        return CommandOld.super.getAliases();
     }
 }

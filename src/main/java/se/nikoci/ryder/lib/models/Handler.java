@@ -1,7 +1,7 @@
-package se.nikoci.bot.models;
+package se.nikoci.ryder.lib.models;
 
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import se.nikoci.bot.Ryder;
+import se.nikoci.ryder.lib.Ryder;
 
 public class Handler extends ListenerAdapter {
 

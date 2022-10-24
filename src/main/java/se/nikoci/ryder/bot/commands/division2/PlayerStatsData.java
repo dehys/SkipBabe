@@ -1,8 +1,8 @@
-package se.nikoci.bot.commands.division2;
+package se.nikoci.ryder.bot.commands.division2;
 
-import se.nikoci.bot.commands.division2.objects.PlatformInfo;
-import se.nikoci.bot.commands.division2.objects.Segments;
-import se.nikoci.bot.commands.division2.objects.UserInfo;
+import se.nikoci.ryder.bot.commands.division2.objects.PlatformInfo;
+import se.nikoci.ryder.bot.commands.division2.objects.Segments;
+import se.nikoci.ryder.bot.commands.division2.objects.UserInfo;
 
 public class PlayerStatsData{
     PlatformInfo platformInfo;

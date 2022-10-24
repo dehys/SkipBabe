@@ -1,4 +1,4 @@
-package se.nikoci.bot.commands.division2.objects;
+package se.nikoci.ryder.bot.commands.division2.objects;
 
 import lombok.Data;
 

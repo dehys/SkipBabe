@@ -65,7 +65,7 @@
                 <configuration>
                     <transformers>
                         <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                            <mainClass>se.nikoci.bot.Main</mainClass>
+                            <mainClass>se.nikoci.ryder.bot.Main</mainClass>
                         </transformer>
                     </transformers>
                     <createDependencyReducedPom>false</createDependencyReducedPom>
