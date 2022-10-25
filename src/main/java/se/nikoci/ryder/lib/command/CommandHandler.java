@@ -1,111 +1,51 @@
 package se.nikoci.ryder.lib.command;
 
-import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.commands.build.CommandData;
-import se.nikoci.ryder.lib.models.Handler;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Method;
 import java.util.*;
-import java.util.logging.Logger;
 
-public class CommandHandler extends Handler {
+public class CommandHandler extends ListenerAdapter {
 
-    static Logger log = Logger.getLogger(CommandHandler.class.getName());
+    public static Logger logger = LoggerFactory.getLogger(CommandHandler.class);
+    private final Map<Command, Method[]> commands = new HashMap<>();
 
-    //No command aliases stored here, check Request#aliases
-    //Map<name, Request object (CommandOld)>
-    private final Map<String, Request> requestMap = new HashMap<>();
+    public CommandHandler(){
 
-    private final List<CommandData> slashCommandData = new ArrayList<>();
+        //Find all commands and store them via reflection
 
-    @Override
-    public void onMessageReceived(MessageReceivedEvent event) {
-        if (!event.getMessage().getContentRaw().startsWith(this.instance.getSettings().getPrefix())) return;
-        if (event.getAuthor().equals(this.instance.getJda().getSelfUser())) return;
-
-        Member member = event.getMember();
-        String label = event.getMessage().getContentRaw().split(" ")[0].replaceFirst(this.instance.getSettings().getPrefix(), "");
-        CommandOld commandOld = (CommandOld) getCommand(label);
-
-        if (!event.isFromType(ChannelType.TEXT) || member == null || commandOld == null) return;
-
-        if (member.hasPermission(commandOld.getPermissions())){
-            commandOld.execute(event); //Execute the commandOld
-        } else {
-            event.getChannel().sendMessage(this.instance.getSettings().getPermission_error()).queue();
-        }
 
     }
 
     @Override
-    public void onSlashCommand(SlashCommandEvent event) {
-        Member member = event.getMember();
-        SlashCommand command = (SlashCommand) getCommand(event.getName());
+    public void onSlashCommand(@NotNull SlashCommandEvent event) {
+        super.onSlashCommand(event);
+    }
 
-        if (!event.isFromGuild() || member == null || command == null) return;
 
-        if (member.hasPermission(command.getPermissions())) {
-            command.execute(event);
+    public void registerCommand(Class<?> clazz){
+        if (clazz.isAnnotationPresent(Command.class)){
+            Command cmd = clazz.getAnnotation(Command.class);
+            List<Method> methods = new ArrayList<>();
+
+            // Making sure we only add methods from the clazz which has either MessageReceivedEvent or SlashCommandEvent as parameters
+            for (Method m : clazz.getDeclaredMethods()){
+                for (Class<?> parameterType : m.getParameterTypes()) {
+                    if (parameterType.getSimpleName().equalsIgnoreCase("MessageReceivedEvent")
+                        || parameterType.getSimpleName().equalsIgnoreCase("SlashCommandEvent")){
+                        methods.add(m);
+                    }
+                }
+            }
+
+            commands.put(cmd, methods.toArray(new Method[0]));
+            logger.info("Command " + clazz.getSimpleName() + " registered successfully");
         } else {
-            event.getChannel().sendMessage(this.instance.getSettings().getPermission_error()).queue();
+            logger.error("Could not register " + clazz.getSimpleName() + " as a command. Class must be annotated with @Command");
         }
     }
-
-    public void addCommand(Request request){
-        CommandData commandData = (request instanceof SlashCommand sc) ?
-                ((sc.getCommandData() != null) ? sc.getCommandData() : null)
-                : null;
-
-        if (commandData != null) {
-            this.slashCommandData.add(commandData);
-            log.info("Added '" + request.getName() + "' to slash command data to be updated");
-        } else log.warning("No command-data for request '" + request.getName() + "'");
-
-        requestMap.put(request.getName(), request);
-    }
-
-    public void updateCommandData(){
-        this.instance.getJda()
-                .updateCommands()
-                .addCommands(this.slashCommandData)
-                .complete();
-
-        log.info("Updated command data for " + slashCommandData.toArray().length + " entries");
-    }
-
-    public void removeCommand(String name){
-        requestMap.keySet().forEach(cmd -> {
-            if (cmd.equalsIgnoreCase(name)) requestMap.remove(cmd);
-        });
-
-        slashCommandData.forEach(commandData -> {
-            if (commandData.getName().equalsIgnoreCase(name)) slashCommandData.remove(commandData);
-        });
-    }
-
-    public Request getCommand(String name){
-        for (var entrySet : requestMap.entrySet()){
-            if (entrySet.getValue() instanceof CommandOld commandOld){
-                for (String alias : commandOld.getAliases()) if (
-                        name.equalsIgnoreCase(alias) || name.equalsIgnoreCase(commandOld.getName())
-                ) return entrySet.getValue();
-            } else if (name.equalsIgnoreCase(entrySet.getKey())) return entrySet.getValue();
-        }
-        return null;
-    }
-
-    public Map<String, Request> getRequestMap(){
-        return this.requestMap;
-    }
-
-    public void addCommands(Request... requests){
-        for (var req : requests) addCommand(req);
-    }
-
-    public void removeCommands(String... names){
-        for (var name : names) removeCommand(name);
-    }
-
 }
