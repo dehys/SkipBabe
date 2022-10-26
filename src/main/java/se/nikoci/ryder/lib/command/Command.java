@@ -14,6 +14,5 @@ public @interface Command {
     String name();
     String description() default "This command does not have any information";
     Permission[] permissions() default {Permission.MESSAGE_SEND};
-    CommandType type();
 
 }
