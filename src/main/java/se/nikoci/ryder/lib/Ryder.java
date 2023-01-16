@@ -1,19 +1,58 @@
 package se.nikoci.ryder.lib;
 
-import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.OnlineStatus;
+import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.requests.GatewayIntent;
+import org.jetbrains.annotations.NotNull;
 import se.nikoci.ryder.lib.command.CommandHandler;
 
+import java.util.Set;
+
 @Data
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+@RequiredArgsConstructor(staticName = "create")
+@AllArgsConstructor(staticName = "create")
 public class Ryder {
+    private JDA jda = null;
 
-    @NonNull private JDA jda;
-    @NonNull private RyderBuilder ryderBuilder;
+    @NotNull private String token;
+    @NotNull private Set<GatewayIntent> gatewayIntents;
 
-    private CommandHandler commandHandler;
+    private CommandHandler commandHandler = CommandHandler.create(this);
+
+    private OnlineStatus onlineStatus = OnlineStatus.ONLINE;
+    private Activity activity = Activity.listening("Basshunter Dota");
+
+    private String prefix = "!";
+    private String permission_error = "You do not have permissions to perform this action!";
+
+    public void online() throws InterruptedException {
+        if (jda != null) {
+            //there is already a bot instance
+            System.out.println("there is already a bot instance");
+            return;
+        }
+
+        jda = JDABuilder
+                .create(getToken(), getGatewayIntents())
+                .setActivity(activity)
+                .build();
+        jda.awaitReady();
+
+        if (commandHandler != null) jda.addEventListener(commandHandler);
+
+    }
+
+    public void offline() {
+        if (jda != null) {
+            this.jda.shutdownNow();
+        } else {
+            System.out.println("bot is already offline");
+        }
+    }
 
 }

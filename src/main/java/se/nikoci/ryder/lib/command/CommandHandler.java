@@ -1,70 +1,104 @@
 package se.nikoci.ryder.lib.command;
 
 import lombok.Getter;
-import lombok.Setter;
-import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import net.dv8tion.jda.api.events.Event;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import se.nikoci.ryder.lib.RyderBuilder;
+import se.nikoci.ryder.lib.Ryder;
 
-import java.lang.reflect.Method;
 import java.util.*;
 
+@Getter
+@RequiredArgsConstructor(staticName = "create")
 public class CommandHandler extends ListenerAdapter {
 
-    public static Logger logger = LoggerFactory.getLogger(CommandHandler.class);
-    private final Map<Command, Method[]> commands = new HashMap<>();
+    private final Map<String, Command> commands = new HashMap<>();
 
-    @Getter @Setter private RyderBuilder instance;
+    @NonNull private Ryder instance;
+
+    public void registerCommand(Command... commands) {
+        // TODO: register slash command data based on if slash command data exists
+        for (Command c : commands) this.commands.put(c.getName(), c);
+    }
+
+    public boolean isValid(Event event) {
+        boolean result = false;
+        if (event instanceof MessageReceivedEvent mre) {
+            var msg = mre.getMessage().getContentRaw();
+            var label = msg.split(" ")[0].replaceFirst(instance.getPrefix(), "");
+
+            result = msg.startsWith(instance.getPrefix()) &&
+                    commands.containsKey(label) &&
+                    !mre.getAuthor().isBot() &&
+                    !mre.getAuthor().isSystem() &&
+                    !mre.getAuthor().getId().equalsIgnoreCase(instance.getJda().getSelfUser().getId());
+
+        } else if (event instanceof SlashCommandInteractionEvent scie) {
+            result = commands.containsKey(scie.getName()) &&
+                    !scie.getUser().isBot() &&
+                    !scie.getUser().isSystem() &&
+                    !scie.getUser().getId().equalsIgnoreCase(instance.getJda().getSelfUser().getId());
+        }
+        return result;
+    }
+
+    public void executeCommand(Event event, ArrayList<String> args, Command command){
+        if (command.getSubcommands() != null) {
+            for (int i = 0; i < args.size(); i++) {
+                var str = args.get(i);
+
+                if (!command.getSubcommands().containsKey(str)) continue;
+
+                args.remove(str);
+                var newCommand = command.getSubcommands().get(str);
+
+                if (command.isExecuteRecursively()) {
+                    if (event instanceof MessageReceivedEvent mre) command.execute(mre, args);
+                    else if (event instanceof SlashCommandInteractionEvent scie) command.execute(scie, args);
+                }
+
+                executeCommand(event, args, newCommand);
+                return;
+            }
+        }
+
+        args.remove(0);
+        if (event instanceof MessageReceivedEvent mre) command.execute(mre, args);
+        else if (event instanceof SlashCommandInteractionEvent scie) command.execute(scie, args);
+    }
 
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
-        if (!event.getMessage().getContentRaw().startsWith(this.instance.getBotProfile().getPrefix())) return;
-        if (event.getAuthor().equals(this.instance.getJda().getSelfUser())) return;
+        if (!isValid(event)) return;
 
-        Member member = event.getMember();
-        String label = event.getMessage().getContentRaw().split(" ")[0].replaceFirst(this.instance.getBotProfile().getPrefix(), "");
-        Command command = (Command) getCommand(label);
+        var args = new ArrayList<>(Arrays.asList(
+                event.getMessage().getContentRaw().replaceFirst(instance.getPrefix(), "").split(" ") //[args without prefix]
+        ));
 
-        if (!event.isFromType(ChannelType.TEXT) || member == null || command == null) return;
+        Command cmd = commands.get(args.get(0));
 
-        if (member.hasPermission(command.getPermissions())){
-            command.execute(event); //Execute the command
-        } else {
-            event.getChannel().sendMessage(this.instance.getBotProfile().getPermission_error()).queue();
+        if (event.getMember() != null && event.getMember().hasPermission(cmd.getPermissions())) {
+            executeCommand(event, args, cmd);
         }
     }
 
     @Override
-    public void onSlashCommand(@NotNull SlashCommandEvent event) {
-        super.onSlashCommand(event);
-    }
+    public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
+        if (!isValid(event)) return;
 
+        var args = new ArrayList<String>();
+        args.add(event.getName());
+        if (event.getSubcommandGroup() != null) args.add(event.getSubcommandGroup());
+        if (event.getSubcommandName() != null) args.add(event.getSubcommandName());
 
-    public void registerCommand(Class<?> clazz){
-        if (clazz.isAnnotationPresent(Command.class)){
-            Command cmd = clazz.getAnnotation(Command.class);
-            List<Method> methods = new ArrayList<>();
+        Command cmd = commands.get(event.getName());
 
-            // Making sure we only add methods from the clazz which has either MessageReceivedEvent or SlashCommandEvent as parameters
-            for (Method m : clazz.getDeclaredMethods()){
-                for (Class<?> parameterType : m.getParameterTypes()) {
-                    if (parameterType.getSimpleName().equalsIgnoreCase("MessageReceivedEvent")
-                        || parameterType.getSimpleName().equalsIgnoreCase("SlashCommandEvent")){
-                        methods.add(m);
-                    }
-                }
-            }
-
-            commands.put(cmd, methods.toArray(new Method[0]));
-            logger.info("Command " + clazz.getSimpleName() + " registered successfully");
-        } else {
-            logger.error("Could not register " + clazz.getSimpleName() + " as a command. Class must be annotated with @Command");
+        if (event.getMember() != null && event.getMember().hasPermission(cmd.getPermissions())) {
+            executeCommand(event, args, cmd);
         }
     }
 }
