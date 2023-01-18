@@ -1,4 +1,4 @@
-package se.nikoci.ryder.lib.command;
+package se.nikoci.ryder.command;
 
 import lombok.*;
 import net.dv8tion.jda.api.Permission;

@@ -1,19 +1,19 @@
-package se.nikoci.ryder.lib.command;
+package se.nikoci.ryder.command;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.util.List;
 
 @FunctionalInterface
-public interface SlashCommand {
+public interface MessageCommand {
     void execute(CommandAction commandAction);
 
     @Getter
     @AllArgsConstructor
     class CommandAction {
-        private SlashCommandInteractionEvent event;
+        private MessageReceivedEvent event;
         private List<String> args;
         private Command command;
     }
