@@ -3,10 +3,14 @@ package se.nikoci.ryder.lib.command;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.Event;
+import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
+import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import org.jetbrains.annotations.NotNull;
 import se.nikoci.ryder.lib.Ryder;
 
@@ -22,7 +26,10 @@ public class CommandHandler extends ListenerAdapter {
 
     public void registerCommand(Command... commands) {
         // TODO: register slash command data based on if slash command data exists
-        for (Command c : commands) this.commands.put(c.getName(), c);
+        for (Command c : commands) {
+            this.commands.put(c.getName(), c);
+            addSlashCommandToGuilds(instance.getJda().getGuilds().toArray(new Guild[0]));
+        }
     }
 
     public boolean isValid(Event event) {
@@ -81,7 +88,7 @@ public class CommandHandler extends ListenerAdapter {
 
         Command cmd = commands.get(args.get(0));
 
-        if (event.getMember() != null && event.getMember().hasPermission(cmd.getPermissions())) {
+        if (event.getMember() != null && event.getMember().hasPermission(cmd.getPermissions()) && !cmd.isSlashCommand()) {
             executeCommand(event, args, cmd);
         }
     }
@@ -97,8 +104,29 @@ public class CommandHandler extends ListenerAdapter {
 
         Command cmd = commands.get(event.getName());
 
-        if (event.getMember() != null && event.getMember().hasPermission(cmd.getPermissions())) {
+        if (event.getMember() != null && event.getMember().hasPermission(cmd.getPermissions()) && cmd.isSlashCommand()) {
             executeCommand(event, args, cmd);
+        }
+    }
+
+    @Override
+    public void onGuildJoin(GuildJoinEvent event) {
+        addSlashCommandToGuilds(event.getGuild());
+    }
+
+    public void addSlashCommandToGuilds(Guild ... guilds){
+        for (Guild guild : guilds) {
+            List<SlashCommandData> commandData = new ArrayList<>();
+            commands.values().forEach(cmd -> {
+                // Only registers slash commands
+                System.out.println(guild.getName());
+                System.out.println(cmd.getName() + " is slash: " + cmd.isSlashCommand());
+                if (cmd.isSlashCommand()) {
+                    commandData.add(cmd.getCommandData());
+                }
+            });
+
+            guild.updateCommands().addCommands(commandData).queue();
         }
     }
 }

@@ -30,11 +30,11 @@ public class Ryder {
     private String prefix = "!";
     private String permission_error = "You do not have permissions to perform this action!";
 
-    public void online() throws InterruptedException {
+    public Ryder online() throws InterruptedException {
         if (jda != null) {
             //there is already a bot instance
             System.out.println("there is already a bot instance");
-            return;
+            return this;
         }
 
         jda = JDABuilder
@@ -44,7 +44,7 @@ public class Ryder {
         jda.awaitReady();
 
         if (commandHandler != null) jda.addEventListener(commandHandler);
-
+        return this;
     }
 
     public void offline() {
