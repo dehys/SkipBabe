@@ -79,25 +79,15 @@ public class CommandHandler extends ListenerAdapter {
 
         args.remove(0);
 
-        Member member = null;
-        boolean permissionError = false;
-        if (event instanceof MessageReceivedEvent mre) member = mre.getMember();
-        else if (event instanceof SlashCommandInteractionEvent scie) member = scie.getMember();
-
-        if (member != null && command.getPermissions() != null && !member.hasPermission(command.getPermissions())) { //check for permissions
-            permissionError = true;
-        }
-
         if (event instanceof MessageReceivedEvent mre) {
-            if (permissionError) {
+            if (mre.getMember() != null && command.getPermissions() != null && !mre.getMember().hasPermission(command.getPermissions())) { //check for permissions
                 mre.getChannel().sendMessage(mre.getMember().getAsMention() + instance.getPermission_error()).queue();
                 return;
             }
 
             command.execute(mre, args);
-        }
-        else if (event instanceof SlashCommandInteractionEvent scie) {
-            if (permissionError) {
+        } else if (event instanceof SlashCommandInteractionEvent scie) {
+            if (scie.getMember() != null && command.getPermissions() != null && !scie.getMember().hasPermission(command.getPermissions())) { //check for permissions
                 scie.reply(scie.getMember().getAsMention() + instance.getPermission_error()).setEphemeral(true).queue();
                 return;
             }
