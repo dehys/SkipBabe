@@ -4,9 +4,9 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
-import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -24,15 +24,16 @@ public class CommandHandler extends ListenerAdapter {
 
     @NonNull private Ryder instance;
 
-    public void registerCommand(Command... commands) {
+    public void registerCommand(Command ... commandsCollection) {
         // TODO: register slash command data based on if slash command data exists
-        for (Command c : commands) {
-            this.commands.put(c.getName(), c);
-            addSlashCommandToGuilds(instance.getJda().getGuilds().toArray(new Guild[0]));
+        for (Command cmd : commandsCollection) {
+            System.out.println("Registering command: " + cmd.getName() + " -> " + cmd); //debug
+            this.commands.put(cmd.getName(), cmd);
         }
+        addSlashCommandToGuilds(instance.getJda().getGuilds().toArray(new Guild[0]));
     }
 
-    public boolean isValid(Event event) {
+    public boolean isNotValid(Event event) {
         boolean result = false;
         if (event instanceof MessageReceivedEvent mre) {
             var msg = mre.getMessage().getContentRaw();
@@ -50,10 +51,13 @@ public class CommandHandler extends ListenerAdapter {
                     !scie.getUser().isSystem() &&
                     !scie.getUser().getId().equalsIgnoreCase(instance.getJda().getSelfUser().getId());
         }
-        return result;
+        return !result;
     }
 
     public void executeCommand(Event event, ArrayList<String> args, Command command){
+        if (event instanceof MessageReceivedEvent && command.isSlashCommand()) return;
+        else if (event instanceof SlashCommandInteractionEvent && !command.isSlashCommand()) return;
+
         if (command.getSubcommands() != null) {
             for (int i = 0; i < args.size(); i++) {
                 var str = args.get(i);
@@ -74,28 +78,49 @@ public class CommandHandler extends ListenerAdapter {
         }
 
         args.remove(0);
-        if (event instanceof MessageReceivedEvent mre) command.execute(mre, args);
-        else if (event instanceof SlashCommandInteractionEvent scie) command.execute(scie, args);
+
+        Member member = null;
+        boolean permissionError = false;
+        if (event instanceof MessageReceivedEvent mre) member = mre.getMember();
+        else if (event instanceof SlashCommandInteractionEvent scie) member = scie.getMember();
+
+        if (member != null && command.getPermissions() != null && !member.hasPermission(command.getPermissions())) { //check for permissions
+            permissionError = true;
+        }
+
+        if (event instanceof MessageReceivedEvent mre) {
+            if (permissionError) {
+                mre.getChannel().sendMessage(mre.getMember().getAsMention() + instance.getPermission_error()).queue();
+                return;
+            }
+
+            command.execute(mre, args);
+        }
+        else if (event instanceof SlashCommandInteractionEvent scie) {
+            if (permissionError) {
+                scie.reply(scie.getMember().getAsMention() + instance.getPermission_error()).setEphemeral(true).queue();
+                return;
+            }
+
+            command.execute(scie, args);
+        }
     }
 
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
-        if (!isValid(event)) return;
+        if (isNotValid(event)) return;
 
         var args = new ArrayList<>(Arrays.asList(
                 event.getMessage().getContentRaw().replaceFirst(instance.getPrefix(), "").split(" ") //[args without prefix]
         ));
 
         Command cmd = commands.get(args.get(0));
-
-        if (event.getMember() != null && event.getMember().hasPermission(cmd.getPermissions()) && !cmd.isSlashCommand()) {
-            executeCommand(event, args, cmd);
-        }
+        executeCommand(event, args, cmd);
     }
 
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
-        if (!isValid(event)) return;
+        if (isNotValid(event)) return;
 
         var args = new ArrayList<String>();
         args.add(event.getName());
@@ -103,10 +128,7 @@ public class CommandHandler extends ListenerAdapter {
         if (event.getSubcommandName() != null) args.add(event.getSubcommandName());
 
         Command cmd = commands.get(event.getName());
-
-        if (event.getMember() != null && event.getMember().hasPermission(cmd.getPermissions()) && cmd.isSlashCommand()) {
-            executeCommand(event, args, cmd);
-        }
+        executeCommand(event, args, cmd);
     }
 
     @Override
@@ -117,11 +139,12 @@ public class CommandHandler extends ListenerAdapter {
     public void addSlashCommandToGuilds(Guild ... guilds){
         for (Guild guild : guilds) {
             List<SlashCommandData> commandData = new ArrayList<>();
+
             commands.values().forEach(cmd -> {
+                System.out.println("Loop: " + cmd.getName()); //debug
                 // Only registers slash commands
-                System.out.println(guild.getName());
-                System.out.println(cmd.getName() + " is slash: " + cmd.isSlashCommand());
                 if (cmd.isSlashCommand()) {
+                    System.out.println("ADDING COMMAND DATA FOR: " + cmd.getName()); //debug
                     commandData.add(cmd.getCommandData());
                 }
             });

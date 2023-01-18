@@ -10,14 +10,15 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 @Getter
+@NoArgsConstructor
+@SuppressWarnings("used")
 public class Command {
-
     @Setter private boolean isSlashCommand;
 
-    private final String name;
-    private final String description;
+    @Setter private String name;
+    @Setter private String description;
 
-    @Setter private List<Permission> permissions;
+    @Setter private Set<Permission> permissions;
     @Setter private Map<String, Command> subcommands;
     @Setter private boolean executeRecursively;
 
@@ -32,18 +33,24 @@ public class Command {
         commandData.addOptions(getOptions());
         subcommands.forEach((l, c) ->
                 subcommandData.add(new SubcommandData(l, c.getDescription()).addOptions(c.getOptions())));
+
+        /* debug
+        System.out.println("getCommandData: " + this.getName());
+        for (var a : subcommandData) {
+            System.out.println("> " + a.getName());
+        }*/
         return commandData.addSubcommands(subcommandData);
     }
 
     private Command(@NotNull String name, @NotNull String description) {
         this.isSlashCommand = false;
 
-        this.permissions = List.of(Permission.MESSAGE_SEND);
-        this.subcommands = new HashMap();
+        this.permissions = Set.of(Permission.MESSAGE_SEND);
+        this.subcommands = new HashMap<>();
         this.executeRecursively = false;
         this.commandData = Commands.slash(name, description);
-        this.subcommandData = new HashSet();
-        this.options = new HashSet();
+        this.subcommandData = new HashSet<>();
+        this.options = new HashSet<>();
 
         this.name = name;
         this.description = description;
@@ -89,7 +96,7 @@ public class Command {
 
     public void execute(MessageReceivedEvent e, List<String> args) {
         if (commandMsgAction != null) {
-            commandMsgAction.execute(e, args);
+            commandMsgAction.execute(e, args, this);
         } else {
             e.getChannel().sendMessage("`Error:` Implementation needed!").queue();
         }
@@ -97,7 +104,7 @@ public class Command {
 
     public void execute(SlashCommandInteractionEvent e, List<String> args){
         if (commandSlashAction != null) {
-            commandSlashAction.execute(e, args);
+            commandSlashAction.execute(e, args, this);
         } else {
             e.reply("`Error:` Implementation needed!").queue();
         }
