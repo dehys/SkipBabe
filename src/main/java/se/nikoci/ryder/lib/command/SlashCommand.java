@@ -6,5 +6,5 @@ import java.util.List;
 
 @FunctionalInterface
 public interface SlashCommand {
-    void execute(SlashCommandInteractionEvent event, List<String> args);
+    void execute(SlashCommandInteractionEvent event, List<String> args, Command command);
 }
