@@ -22,10 +22,9 @@ Then specify it as a dependency inside of your pom.xml file
 ```
 
 The code block below showcases how you can use Ryder to implement commands with no effort using lambda expressions.<br>
-In this example we are creating a total of 4 commands: `!info`, `!info link`, `/greet hello` and `/greet hi`<br>
-Note that we don't get a `/greet` command due to the limitations of a [Slash Command](https://discord.com/developers/docs/interactions/application-commands)<br>
-`(e, a, c)` -> Event, Arguments, Command
-
+In this example we are creating a total of 4 commands:<br>
+`!info`, `!info link`, `/greet hello` and `/greet hi`<br>
+Note that we don't get a `/greet` command due to the structure of a [Slash Command](https://discord.com/developers/docs/interactions/application-commands)
 ```java
 public static void main(String[] args) throws InterruptedException {
     // Creating an instance of Ryder
@@ -37,11 +36,11 @@ public static void main(String[] args) throws InterruptedException {
 
     // Creating a normal command. Example: !info
     var normalCmd = Command.create("info", "Shows information");
-    normalCmd.onMessage((e, a, c) -> e.getChannel().sendMessage("Made by Arijan Nikoci").queue());
+    normalCmd.onMessage(ca -> ca.getEvent().getChannel().sendMessage("Made by Arijan Nikoci").queue());
 
     // Creating a subcommand, setting the execution of the command using constructor
     var normalSubCmd = Command.create("link", "Link to repository",
-            (e, a, c) -> e.getChannel().sendMessage("https://github.com/nikoci/Ryder").queue());
+            ca -> ca.getEvent().getChannel().sendMessage("https://github.com/nikoci/Ryder").queue());
 
     // Adding normalSubCmd as a subcommand for normalCmd
     normalCmd.addSubcommands(normalSubCmd);
@@ -51,11 +50,11 @@ public static void main(String[] args) throws InterruptedException {
 
     // Creating a subcommand, setting the execution of the command using Command#onSlash(SlashCommand)
     var slashSubCmd1 = Command.createSlash("hello", "says hello");
-    slashSubCmd1.onSlash((e, a, c) -> e.reply("Hello there " + e.getUser().getAsTag()).queue());
+    slashSubCmd1.onSlash(ca -> ca.getEvent().reply("Hello there " + e.getUser().getAsTag()).queue());
 
     // Creating a subcommand, setting the execution of the command using constructor
     var slashSubCmd2 = Command.createSlash("hi", "says hi",
-            (e, a, c) -> e.reply("Hi there " + e.getUser().getAsTag()).queue());
+            ca -> ca.getEvent().reply("Hi there " + e.getUser().getAsTag()).queue());
 
     // Adding slashSubCmd1 and slashSubCmd2 as subcommands for slashCmd
     slashCmd.addSubcommands(slashSubCmd1, slashSubCmd2);
@@ -70,16 +69,17 @@ The other option is to create your own class and implement either `SlashCommand`
 your command to the new class by `onSlash(Object<? implements SlashCommand>)` and/or `onMessage(Object<? implements MessageCommand>)`
 
 Example:
+
 ```java
 class MyCommand implements MessageCommand, SlashCommand {
     @Override
-    public void execute(MessageReceivedEvent event, List<String> args, Command command) {
-        event.getChannel().sendMessage(command.getDescription()).queue();
+    public void execute(MessageCommand.CommandAction commandAction) {
+        commandAction.getEvent().getChannel().sendMessage(command.getDescription()).queue();
     }
 
     @Override
-    public void execute(SlashCommandInteractionEvent event, List<String> args, Command command) {
-        event.reply(command.getDescription()).queue();
+    public void execute(SlashCommand.CommandAction commandAction) {
+        commandAction.getEvent().reply(command.getDescription()).queue();
     }
 }
 
