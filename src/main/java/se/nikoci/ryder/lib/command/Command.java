@@ -10,8 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 @Getter
-@NoArgsConstructor
-@SuppressWarnings("used")
+@SuppressWarnings("unused")
 public class Command {
     @Setter private boolean isSlashCommand;
 
@@ -42,7 +41,7 @@ public class Command {
         return commandData.addSubcommands(subCommandData);
     }
 
-    private Command(@NotNull String name, @NotNull String description) {
+    public Command(@NotNull String name, @NotNull String description) {
         this.isSlashCommand = false;
 
         this.permissions = Set.of(Permission.MESSAGE_SEND);
@@ -94,30 +93,28 @@ public class Command {
         return cmd;
     }
 
-    public void execute(MessageReceivedEvent e, List<String> args) {
+    public void execute(MessageReceivedEvent event, List<String> args) {
         if (commandMsgAction != null) {
-            commandMsgAction.execute(e, args, this);
+            commandMsgAction.execute(new MessageCommand.CommandAction(event, args, this));
         } else {
-            e.getChannel().sendMessage("`Error:` Implementation needed!").queue();
+            event.getChannel().sendMessage("`Error:` Implementation needed!").queue();
         }
     }
 
-    public void execute(SlashCommandInteractionEvent e, List<String> args){
+    public void execute(SlashCommandInteractionEvent event, List<String> args){
         if (commandSlashAction != null) {
-            commandSlashAction.execute(e, args, this);
+            commandSlashAction.execute(new SlashCommand.CommandAction(event, args, this));
         } else {
-            e.reply("`Error:` Implementation needed!").queue();
+            event.reply("`Error:` Implementation needed!").queue();
         }
     }
 
-    public Command onSlash(SlashCommand slashCommand) {
+    public void onSlash(SlashCommand slashCommand) {
         this.commandSlashAction = slashCommand;
-        return this;
     }
 
-    public Command onMessage(MessageCommand messageCommand) {
+    public void onMessage(MessageCommand messageCommand) {
         this.commandMsgAction = messageCommand;
-        return this;
     }
 
     public Command addSubCommands(Command ... commands) {
