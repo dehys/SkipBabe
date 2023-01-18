@@ -23,7 +23,7 @@ Then specify it as a dependency inside of your pom.xml file
 
 The code block below showcases how you can use Ryder to implement commands with no effort using lambda expressions.<br>
 In this example we are creating a total of 4 commands: `!info`, `!info link`, `/greet hello` and `/greet hi`<br>
-Note that we don't get a `/greet` command due to the limitations of a [Slash Command](https://discord.com/developers/docs/interactions/application-commands)
+Note that we don't get a `/greet` command due to the limitations of a [Slash Command](https://discord.com/developers/docs/interactions/application-commands)<br>
 `(e, a, c)` -> Event, Arguments, Command
 
 ```java
