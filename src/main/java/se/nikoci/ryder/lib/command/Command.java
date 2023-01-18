@@ -19,37 +19,37 @@ public class Command {
     @Setter private String description;
 
     @Setter private Set<Permission> permissions;
-    @Setter private Map<String, Command> subcommands;
+    @Setter private Map<String, Command> subCommands;
     @Setter private boolean executeRecursively;
 
     private SlashCommand commandSlashAction;
     private MessageCommand commandMsgAction;
 
     @Setter private SlashCommandData commandData;
-    @Setter private Set<SubcommandData> subcommandData;
+    @Setter private Set<SubcommandData> subCommandData;
     @Setter private Set<OptionData> options;
 
     public SlashCommandData getCommandData(){
         commandData.addOptions(getOptions());
-        subcommands.forEach((l, c) ->
-                subcommandData.add(new SubcommandData(l, c.getDescription()).addOptions(c.getOptions())));
+        subCommands.forEach((l, c) ->
+                subCommandData.add(new SubcommandData(l, c.getDescription()).addOptions(c.getOptions())));
 
         /* debug
         System.out.println("getCommandData: " + this.getName());
         for (var a : subcommandData) {
             System.out.println("> " + a.getName());
         }*/
-        return commandData.addSubcommands(subcommandData);
+        return commandData.addSubcommands(subCommandData);
     }
 
     private Command(@NotNull String name, @NotNull String description) {
         this.isSlashCommand = false;
 
         this.permissions = Set.of(Permission.MESSAGE_SEND);
-        this.subcommands = new HashMap<>();
+        this.subCommands = new HashMap<>();
         this.executeRecursively = false;
         this.commandData = Commands.slash(name, description);
-        this.subcommandData = new HashSet<>();
+        this.subCommandData = new HashSet<>();
         this.options = new HashSet<>();
 
         this.name = name;
@@ -120,9 +120,9 @@ public class Command {
         return this;
     }
 
-    public Command addSubcommands(Command ... commands) {
+    public Command addSubCommands(Command ... commands) {
         for (Command command : commands) {
-            subcommands.put(command.getName(), command);
+            subCommands.put(command.getName(), command);
         }
         return this;
     }

@@ -58,14 +58,14 @@ public class CommandHandler extends ListenerAdapter {
         if (event instanceof MessageReceivedEvent && command.isSlashCommand()) return;
         else if (event instanceof SlashCommandInteractionEvent && !command.isSlashCommand()) return;
 
-        if (command.getSubcommands() != null) {
+        if (command.getSubCommands() != null) {
             for (int i = 0; i < args.size(); i++) {
                 var str = args.get(i);
 
-                if (!command.getSubcommands().containsKey(str)) continue;
+                if (!command.getSubCommands().containsKey(str)) continue;
 
                 args.remove(str);
-                var newCommand = command.getSubcommands().get(str);
+                var newCommand = command.getSubCommands().get(str);
 
                 if (command.isExecuteRecursively()) {
                     if (event instanceof MessageReceivedEvent mre) command.execute(mre, args);
