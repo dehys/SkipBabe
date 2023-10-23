@@ -109,12 +109,14 @@ public class Command {
         }
     }
 
-    public void onSlash(SlashCommand slashCommand) {
+    public Command onSlash(SlashCommand slashCommand) {
         this.commandSlashAction = slashCommand;
+        return this;
     }
 
-    public void onMessage(MessageCommand messageCommand) {
+    public Command onMessage(MessageCommand messageCommand) {
         this.commandMsgAction = messageCommand;
+        return this;
     }
 
     public Command addSubCommands(Command ... commands) {

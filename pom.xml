@@ -6,7 +6,7 @@
 
     <groupId>se.nikoci</groupId>
     <artifactId>Ryder</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.3</version>
 
     <properties>
         <maven.compiler.source>18</maven.compiler.source>
@@ -18,7 +18,7 @@
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
-            <version>5.0.0-beta.2</version>
+            <version>5.0.0-beta.16</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
